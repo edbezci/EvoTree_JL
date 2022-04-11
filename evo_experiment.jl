@@ -6,11 +6,9 @@ STOPWORDS = stopwords(Languages.English());
 
 function ReadData(data)
     df = CSV.read(data, DataFrame)
-    
+    println(first(df,5))
     return df
 end
-
-
 
 function Feature_Extract(data)
     crps = Corpus(StringDocument.(data.text))
@@ -34,7 +32,7 @@ end
 
 function Classify(data)
     data = ReadData(data)
-    coerce!(data, :label => Multiclass)
+    #coerce!(data, :label => Multiclass)
     params = EvoTreeRegressor(loss=:L1, α=0.5, metric = :mae,
     nrounds=100, nbins=100,
     λ = 0.5, γ=0.0, η=0.1,
@@ -43,9 +41,10 @@ function Classify(data)
     train, test = partition(data, 0.7, shuffle=true, rng=123,  stratify= data.label)
 
     ytrain = train.label
+    println(size(ytrain))
     ytest  = test.label
     Xtrain = Feature_Extract(train)
-
+    println(size(Xtrain))
     Xtest = Feature_Extract(test)
 
     model = fit_evotree(params, Xtrain, ytrain, X_eval = Xtest, Y_eval = ytest, print_every_n = 25)
